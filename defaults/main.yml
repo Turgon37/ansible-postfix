@@ -1,0 +1,24 @@
+---
+# Postfix role
+# ------------------
+
+# List of package to install for the daemon
+postfix__daemon_packages_name:
+  - postfix
+
+# List of package to install for the client
+postfix__client_packages_name:
+  - mailx
+
+# The name of the postfix service
+postfix__service_name: postfix
+
+# If this parameter is set, a test mail will be send to this address after successful configuration
+#postfix__test_email_address:
+
+# Network settings
+postfix__inet_protocols: ipv4
+
+# Relay settings
+#postfix__relay_host:
+#postfix__relay_domain:

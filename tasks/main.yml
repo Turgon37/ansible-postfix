@@ -1,0 +1,49 @@
+---
+- name: Include the OS specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ ansible_distribution }}.yml"
+        - "{{ ansible_os_family }}.yml"
+      skip: true
+  tags: ['postfix']
+
+- name: Install required packages
+  package:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - '{{ postfix__daemon_packages_name }}'
+    - '{{ postfix__client_packages_name }}'
+  tags: ['postfix']
+
+- name: Install main.cf file
+  become: yes
+  template:
+    src: etc/postfix/main.cf.j2
+    dest: "/etc/postfix/main.cf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: ['Restart postfix daemon']
+  tags: ['postfix', 'config']
+  
+- name: Ensure postfix is started and enabled on boot
+  become: yes
+  service:
+    name: "{{ postfix__service_name }}"
+    state: started
+    enabled: yes
+  changed_when: False
+  tags: ['postfix', 'config']
+
+- name: Optionnaly run handlers before tests
+  meta: flush_handlers
+  tags: ['postfix', 'config']
+
+- name: "Send a test mail to {{ postfix__test_email_address }}"
+  shell: "echo 'This is a test message from {{ ansible_fqdn }} that indicate that the mail configuration is correct' | 
+    mail -s '[Ansible] test message from {{ ansible_fqdn }}' {{ postfix__test_email_address }}"
+  check_mode: no
+  when: postfix__test_email_address is defined
+  tags: ['postfix', 'config', 'tests']

@@ -1,0 +1,5 @@
+---
+- name: Restart postfix daemon
+  service:
+    name: '{{ postfix__service_name }}'
+    state: restarted
